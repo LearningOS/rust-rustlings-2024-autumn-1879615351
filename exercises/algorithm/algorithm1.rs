@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T:std::cmp::PartialOrd+Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T:std::cmp::PartialOrd+Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -71,12 +70,40 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut new_self = Self::default();
+        let mut list_a = list_a;
+        let mut list_b = list_b;
+        while list_a.start.is_some() && list_b.start.is_some(){
+            unsafe {
+                let node1 = &(*list_a.start.unwrap().as_ptr());
+                let node2 = &(*list_b.start.unwrap().as_ptr());
+                if node1.val < node2.val {
+                    new_self.add((node1.val.clone()));
+                    list_a.start = node1.next;
+                }else{
+                    new_self.add((node2.val.clone()));
+                    list_b.start = node2.next;
+                }
+            }
         }
+        if list_a.start.is_none() && list_b.start.is_some(){
+            while let Some(node) = list_b.start{
+                unsafe {
+                    let node = &(*node.as_ptr());
+                    new_self.add(node.val.clone());
+                    list_b.start = node.next;
+                }
+            }
+        }else if list_a.start.is_some() && list_b.start.is_none(){
+            while let Some(node) = list_a.start{
+                unsafe {
+                    let node = &(*node.as_ptr());
+                    new_self.add(node.val.clone());
+                    list_a.start = node.next;
+                }
+            }
+        }
+        new_self
 	}
 }
 
