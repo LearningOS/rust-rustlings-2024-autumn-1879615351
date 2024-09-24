@@ -42,7 +42,7 @@ impl Graph for UndirectedGraph {
         true
     }
 
-    fn add_edge(&mut self, edge: (&str, &str, i32)) {
+    fn add_edge(&mut self, edge: (&str, &str, i32)) { //找到当前节点，将邻近的点加入到对应的vec中
         let (node1, node2, weight) = edge;
         self.add_node(node1);
         self.add_node(node2);
