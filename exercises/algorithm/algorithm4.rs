@@ -3,10 +3,8 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
 use std::cmp::Ordering;
 use std::fmt::Debug;
-
 
 #[derive(Debug)]
 struct TreeNode<T>
@@ -41,22 +39,68 @@ where
 
 impl<T> BinarySearchTree<T>
 where
-    T: Ord,
+    T: Ord + Copy,
 {
-
     fn new() -> Self {
         BinarySearchTree { root: None }
     }
 
+    // Helper function to insert a value into the BST starting from a given node
+    fn insert_impl(node: &mut Box<TreeNode<T>>, value: T) {
+        match value.cmp(&node.value) {
+            Ordering::Less => {
+                if node.left.is_none() {
+                    node.left = Some(Box::new(TreeNode::new(value)));
+                } else {
+                    // Recurse down the left subtree
+                    Self::insert_impl(node.left.as_mut().unwrap(), value);
+                }
+            }
+            Ordering::Greater => {
+                if node.right.is_none() {
+                    node.right = Some(Box::new(TreeNode::new(value)));
+                } else {
+                    // Recurse down the right subtree
+                    Self::insert_impl(node.right.as_mut().unwrap(), value);
+                }
+            }
+            Ordering::Equal => {
+                // Value is already present in the tree, no action needed
+            }
+        }
+    }
+
     // Insert a value into the BST
     fn insert(&mut self, value: T) {
-        //TODO
+        match self.root {
+            Some(ref mut node) => {
+                // If root exists, use the helper function to insert the value
+                Self::insert_impl(node, value);
+            }
+            None => {
+                // If root is None, create a new node as the root
+                self.root = Some(Box::new(TreeNode::new(value)));
+            }
+        }
     }
 
     // Search for a value in the BST
     fn search(&self, value: T) -> bool {
-        //TODO
-        true
+        let mut current = &self.root;
+        while let Some(node) = current {
+            match value.cmp(&node.value) {
+                Ordering::Less => {
+                    current = &node.left;
+                }
+                Ordering::Greater => {
+                    current = &node.right;
+                }
+                Ordering::Equal => {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }
 
@@ -64,12 +108,29 @@ impl<T> TreeNode<T>
 where
     T: Ord,
 {
-    // Insert a node into the tree
+    // Insert a node into the tree (used in the recursive case)
     fn insert(&mut self, value: T) {
-        //TODO
+        match value.cmp(&self.value) {
+            Ordering::Less => {
+                if let Some(ref mut left_node) = self.left {
+                    left_node.insert(value);
+                } else {
+                    self.left = Some(Box::new(TreeNode::new(value)));
+                }
+            }
+            Ordering::Greater => {
+                if let Some(ref mut right_node) = self.right {
+                    right_node.insert(value);
+                } else {
+                    self.right = Some(Box::new(TreeNode::new(value)));
+                }
+            }
+            Ordering::Equal => {
+                // Value is already in the tree, do nothing
+            }
+        }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

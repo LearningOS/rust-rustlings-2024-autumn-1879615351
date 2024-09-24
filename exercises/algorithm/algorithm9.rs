@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,13 +36,32 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1; //序号从1开始方便处理，因为此时 父节点i的两个子节点为2i 和2i+1，两个子节点都可以通过/2得到父节点的索引
+        if self.count < self.items.len() { //当前数组还没有存放满
+            self.items[self.count] = value;  //数组默认有空间，没有放满的时候直接放到当前的后一个。
+        } else {
+            self.items.push(value);//元素加入到数组末尾
+        }
+        self.heapify_up(self.count); //上浮
+    }
+
+    fn heapify_up(&mut self, idx: usize) {
+        let mut idx = idx;
+        while idx > 1 { //最多找到根节点 ==1
+            let parent = self.parent_idx(idx); //当前索引/2找到父节点的索引
+            if (self.comparator)(&self.items[idx], &self.items[parent]) { //比较当前节点和父节点
+                self.items.swap(idx, parent); //满足条件，交换
+                idx = parent; //更新索引，继续上浮
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
     }
-
+    //判断是否有孩子，先有左孩子再有右孩子 i,i+1
     fn children_present(&self, idx: usize) -> bool {
         self.left_child_idx(idx) <= self.count
     }
@@ -55,10 +73,29 @@ where
     fn right_child_idx(&self, idx: usize) -> usize {
         self.left_child_idx(idx) + 1
     }
-
+    //得到当前节点的满足条件的孩子索引
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        //右孩子的索引较大，判断是否存在右孩子
+        if right <= self.count && (self.comparator)(&self.items[right], &self.items[left]) {
+            right
+        } else {
+            left
+        }
+    }
+    //当前最满足条件的元素移除
+    fn heapify_down(&mut self, idx: usize) {
+        let mut idx = idx;
+        while self.children_present(idx) { //当前索引存在孩子
+            let child = self.smallest_child_idx(idx); //得到更满足条件的孩子
+            if (self.comparator)(&self.items[child], &self.items[idx]) { //判断当前节点和更满足条件的孩子的关系
+                self.items.swap(idx, child);
+                idx = child;
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -66,12 +103,10 @@ impl<T> Heap<T>
 where
     T: Default + Ord,
 {
-    /// Create a new MinHeap
     pub fn new_min() -> Self {
         Self::new(|a, b| a < b)
     }
 
-    /// Create a new MaxHeap
     pub fn new_max() -> Self {
         Self::new(|a, b| a > b)
     }
@@ -79,13 +114,19 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Copy,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+        let root = self.items[1].clone();
+        self.items[1] = self.items[self.count]; //最后一个元素最不满足条件，放在堆顶开始重新调整
+        self.count -= 1;  //移除原来最满足条件的，忽略上一步的最不满足条件的元素
+        self.heapify_down(1); //重新分配
+        Some(root) //返回当前最满足条件的
     }
 }
 
